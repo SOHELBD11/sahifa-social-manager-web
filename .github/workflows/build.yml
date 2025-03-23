@@ -29,10 +29,11 @@ jobs:
         NEXT_PUBLIC_FIREBASE_CONFIG: ${{ secrets.NEXT_PUBLIC_FIREBASE_CONFIG }}
     
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
         name: build-output
         path: out/
+        retention-days: 1
     
     - name: Deploy to cPanel
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -41,4 +42,5 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./out/
-        server-dir: public_html/ 
+        server-dir: public_html/
+        dangerous-clean-slate: true 
