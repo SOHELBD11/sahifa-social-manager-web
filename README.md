@@ -1,5 +1,7 @@
 # Sahifa Social Manager Web Platform
 
+![Build Status](https://github.com/SOHELBD11/sahifa-social-manager-web/actions/workflows/build.yml/badge.svg)
+
 ## Setup Instructions
 
 ### Prerequisites
