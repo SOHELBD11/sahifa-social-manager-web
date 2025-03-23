@@ -26,8 +26,11 @@ jobs:
           rm -rf node_modules .next out package-lock.json
           npm cache clean --force
           
-          echo "=== Installing dependencies ==="
+          echo "=== Installing core dependencies ==="
           npm install --legacy-peer-deps --no-audit --no-fund
+          
+          echo "=== Installing webpack dependencies ==="
+          npm install --save-dev @svgr/webpack file-loader
           
           echo "=== Checking installed packages ==="
           npm list --depth=0
@@ -37,6 +40,7 @@ jobs:
           NODE_OPTIONS: "--max_old_space_size=4096"
           NEXT_TELEMETRY_DISABLED: "1"
           CI: "false"
+          DEBUG: "webpack:*"
         run: |
           echo "=== Starting Build Process ==="
           echo "Current directory:"
@@ -45,7 +49,18 @@ jobs:
           ls -la
           
           echo "=== Running Build Command ==="
-          NODE_ENV=production npm run build
+          NODE_ENV=production npm run build || {
+            echo "Build failed. Checking webpack debug logs..."
+            if [ -f ".next/build-error.log" ]; then
+              echo "Build error log:"
+              cat .next/build-error.log
+            fi
+            if [ -f ".next/webpack-error.log" ]; then
+              echo "Webpack error log:"
+              cat .next/webpack-error.log
+            fi
+            exit 1
+          }
           
           echo "=== Build Completed ==="
           if [ -d ".next" ]; then
@@ -57,7 +72,14 @@ jobs:
           fi
           
           echo "=== Creating Static Export ==="
-          npm run export
+          npm run export || {
+            echo "Export failed. Checking error logs..."
+            if [ -f ".next/export-error.log" ]; then
+              echo "Export error log:"
+              cat .next/export-error.log
+            fi
+            exit 1
+          }
           
           echo "=== Export Completed ==="
           if [ -d "out" ]; then

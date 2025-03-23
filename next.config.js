@@ -16,33 +16,38 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config, { dev, isServer }) => {
-    // Optimize webpack configuration for faster builds
-    config.optimization = {
-      ...config.optimization,
-      minimize: !dev,
-      splitChunks: {
-        chunks: 'all',
-        minSize: 20000,
-        maxSize: 244000,
-        minChunks: 1,
-        maxAsyncRequests: 30,
-        maxInitialRequests: 30,
-        cacheGroups: {
-          defaultVendors: {
-            test: /[\\/]node_modules[\\/]/,
-            priority: -10,
-            reuseExistingChunk: true,
-          },
-          default: {
-            minChunks: 2,
-            priority: -20,
-            reuseExistingChunk: true,
-          },
-        },
+  webpack: (config) => {
+    // Grab the existing rule that handles SVG imports
+    const fileLoaderRule = config.module.rules.find(
+      (rule) => rule.test?.test?.('.svg'),
+    )
+
+    config.module.rules.push(
+      // Reapply the existing rule, but only for svg imports ending in ?url
+      {
+        ...fileLoaderRule,
+        test: /\.svg$/i,
+        resourceQuery: /url/, // *.svg?url
       },
-    };
-    return config;
+      // Convert all other SVG imports to React components
+      {
+        test: /\.svg$/i,
+        issuer: { not: /\.(css|scss|sass)$/ },
+        resourceQuery: { not: /url/ }, // exclude if *.svg?url
+        loader: '@svgr/webpack',
+        options: {
+          dimensions: false,
+          titleProp: true,
+        },
+      }
+    )
+
+    // Modify the file loader rule to ignore svg files
+    if (fileLoaderRule) {
+      fileLoaderRule.exclude = /\.svg$/i
+    }
+
+    return config
   },
 }
 
