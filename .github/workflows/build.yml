@@ -21,19 +21,31 @@ jobs:
           node-version: '16.20.2'
 
       - name: Clean install
+        env:
+          NPM_CONFIG_LEGACY_PEER_DEPS: "true"
+          NPM_CONFIG_FUND: "false"
+          NPM_CONFIG_AUDIT: "false"
         run: |
           echo "=== Cleaning environment ==="
           rm -rf node_modules .next out package-lock.json
           npm cache clean --force
           
-          echo "=== Installing core dependencies ==="
-          npm install --legacy-peer-deps --no-audit --no-fund
+          echo "=== Installing dependencies in stages ==="
           
-          echo "=== Installing webpack dependencies ==="
-          npm install --save-dev @svgr/webpack file-loader
+          echo "Stage 1: Installing core dependencies"
+          npm install --no-audit --no-fund --legacy-peer-deps
+          
+          echo "Stage 2: Installing webpack dependencies"
+          npm install --save-dev --no-audit --no-fund --legacy-peer-deps @svgr/webpack file-loader
+          
+          echo "Stage 3: Installing remaining dependencies"
+          npm install --no-audit --no-fund --legacy-peer-deps
           
           echo "=== Checking installed packages ==="
           npm list --depth=0
+          
+          echo "=== Checking for dependency conflicts ==="
+          npm ls --depth=0 || true
 
       - name: Build
         env:
