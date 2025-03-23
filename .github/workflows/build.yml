@@ -29,6 +29,8 @@ jobs:
         ls -la
         echo "=== Package.json Contents ==="
         cat package.json
+        echo "=== Next.js Config ==="
+        cat next.config.js
     
     - name: Install dependencies
       run: |
@@ -104,6 +106,8 @@ jobs:
           ls -la
           echo "Checking .next directory:"
           ls -la .next/
+          echo "=== Build Log Contents ==="
+          cat build.log
           exit 1
         fi
     
