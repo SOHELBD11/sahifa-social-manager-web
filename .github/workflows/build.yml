@@ -21,44 +21,65 @@ jobs:
     
     - name: Debug Info
       run: |
+        echo "=== Environment Information ==="
         node --version
         npm --version
         pwd
+        echo "=== Directory Contents ==="
         ls -la
+        echo "=== Package.json Contents ==="
+        cat package.json
     
     - name: Install dependencies
       run: |
+        echo "=== Installing Dependencies ==="
         npm install --legacy-peer-deps --no-audit
+        echo "=== Installed Packages ==="
         npm list
     
     - name: Check TypeScript
       run: |
+        echo "=== Running TypeScript Check ==="
         npm run type-check || true
     
     - name: Lint
       run: |
+        echo "=== Running Lint ==="
         npm run lint || true
     
     - name: Build
       run: |
-        echo "Starting build process..."
-        # Build the application
-        npm run build || {
+        echo "=== Starting Build Process ==="
+        echo "Current directory:"
+        pwd
+        echo "Directory contents:"
+        ls -la
+        
+        echo "=== Running Next.js Build ==="
+        # Run build with verbose output
+        NODE_OPTIONS="--max_old_space_size=4096" npm run build 2>&1 || {
           echo "Build failed. Checking for error logs..."
           if [ -d ".next" ]; then
             echo "Contents of .next directory:"
             ls -la .next/
           fi
+          echo "Current directory contents after failed build:"
+          ls -la
           exit 1
         }
         
-        echo "Build completed. Checking output directory..."
+        echo "=== Build Completed ==="
+        echo "Checking for output directory..."
         if [ ! -d "out" ]; then
           echo "Error: 'out' directory not created"
           echo "Current directory contents:"
           ls -la
           echo "Checking .next directory:"
           ls -la .next/
+          echo "Checking for any error logs:"
+          if [ -f ".next/server/pages-manifest.json" ]; then
+            cat .next/server/pages-manifest.json
+          fi
           exit 1
         fi
       env:
@@ -69,7 +90,7 @@ jobs:
     
     - name: Check build output
       run: |
-        echo "Checking build output directory..."
+        echo "=== Checking Build Output ==="
         if [ -d "out" ]; then
           echo "Contents of out directory:"
           ls -la out/
@@ -77,12 +98,14 @@ jobs:
           echo "Error: out directory does not exist"
           echo "Current directory contents:"
           ls -la
+          echo "Checking .next directory:"
+          ls -la .next/
           exit 1
         fi
     
     - name: Test FTP Connection
       run: |
-        echo "Testing FTP connection..."
+        echo "=== Testing FTP Connection ==="
         if [ -z "${{ secrets.FTP_SERVER }}" ] || [ -z "${{ secrets.FTP_USERNAME }}" ] || [ -z "${{ secrets.FTP_PASSWORD }}" ]; then
           echo "Error: FTP credentials are not properly set in GitHub Secrets"
           echo "Please check if FTP_SERVER, FTP_USERNAME, and FTP_PASSWORD are set"
