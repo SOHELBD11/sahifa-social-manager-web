@@ -11,6 +11,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // Ignore ESLint errors during build
   },
+  trailingSlash: true,
   output: 'export',
   images: {
     unoptimized: true,
