@@ -42,7 +42,7 @@ jobs:
     - name: Build
       run: |
         echo "Starting build process..."
-        # First build the application
+        # Build the application
         npm run build || {
           echo "Build failed. Checking for error logs..."
           if [ -d ".next" ]; then
@@ -52,22 +52,13 @@ jobs:
           exit 1
         }
         
-        # Then export to static files
-        echo "Exporting static files..."
-        npm run export || {
-          echo "Export failed. Checking for error logs..."
-          if [ -d ".next" ]; then
-            echo "Contents of .next directory:"
-            ls -la .next/
-          fi
-          exit 1
-        }
-        
-        echo "Build and export completed. Checking output directory..."
+        echo "Build completed. Checking output directory..."
         if [ ! -d "out" ]; then
           echo "Error: 'out' directory not created"
           echo "Current directory contents:"
           ls -la
+          echo "Checking .next directory:"
+          ls -la .next/
           exit 1
         fi
       env:
