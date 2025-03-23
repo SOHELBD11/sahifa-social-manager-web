@@ -6,11 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,9 +19,25 @@ jobs:
       with:
         node-version: '16'
     
+    - name: Debug Info
+      run: |
+        node --version
+        npm --version
+        pwd
+        ls -la
+    
     - name: Install dependencies
       run: |
         npm install --legacy-peer-deps --no-audit
+        npm list
+    
+    - name: Check TypeScript
+      run: |
+        npm run type-check || true
+    
+    - name: Lint
+      run: |
+        npm run lint || true
     
     - name: Build
       run: |
@@ -35,8 +46,14 @@ jobs:
         NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         NEXT_PUBLIC_FIREBASE_CONFIG: ${{ secrets.NEXT_PUBLIC_FIREBASE_CONFIG }}
         CI: false
+        DEBUG: "*"
+    
+    - name: Check build output
+      run: |
+        ls -la out/
     
     - name: Deploy to cPanel
+      if: success() || failure()
       uses: SamKirkland/FTP-Deploy-Action@4.0.0
       with:
         server: ${{ secrets.FTP_SERVER }}
