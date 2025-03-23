@@ -22,13 +22,25 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "Installing dependencies..."
-          npm install --legacy-peer-deps --no-audit
-          echo "Generating package-lock.json..."
-          npm install --package-lock-only
-          echo "Installing dependencies with lock file..."
-          npm ci --legacy-peer-deps
-          echo "Listing installed packages..."
+          echo "=== Environment Information ==="
+          node --version
+          npm --version
+          
+          echo "=== Cleaning npm cache and node_modules ==="
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          
+          echo "=== Installing dependencies with legacy peer deps ==="
+          npm install --legacy-peer-deps --verbose
+          
+          echo "=== Checking for dependency conflicts ==="
+          npm ls --depth=0
+          
+          echo "=== Checking for specific problematic packages ==="
+          npm ls @chakra-ui/react @emotion/react @emotion/styled
+          npm ls next react react-dom
+          
+          echo "=== Final dependency check ==="
           npm list
 
       - name: Debug Info
