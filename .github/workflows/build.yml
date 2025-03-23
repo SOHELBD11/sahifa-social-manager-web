@@ -20,23 +20,14 @@ jobs:
         with:
           node-version: '16.20.2'
 
-      - name: Install dependencies
-        env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
-          NPM_CONFIG_LEGACY_PEER_DEPS: "true"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_AUDIT: "false"
+      - name: Clean install
         run: |
-          echo "=== Environment Information ==="
-          node --version
-          npm --version
-          
-          echo "=== Cleaning npm cache and node_modules ==="
-          rm -rf node_modules package-lock.json
+          echo "=== Cleaning environment ==="
+          rm -rf node_modules .next out package-lock.json
           npm cache clean --force
           
           echo "=== Installing dependencies ==="
-          npm install --no-audit --no-fund --legacy-peer-deps
+          npm install --legacy-peer-deps --no-audit --no-fund
           
           echo "=== Checking installed packages ==="
           npm list --depth=0
@@ -45,22 +36,30 @@ jobs:
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
           NEXT_TELEMETRY_DISABLED: "1"
+          CI: "false"
         run: |
-          echo "Starting build process..."
-          echo "Current directory contents:"
+          echo "=== Starting Build Process ==="
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
           ls -la
-          echo "Running build command..."
+          
+          echo "=== Running Build Command ==="
           NODE_ENV=production npm run build
-          echo "Build completed. Checking output directory..."
+          
+          echo "=== Build Completed ==="
           if [ -d ".next" ]; then
             echo "Build output found in .next directory"
             ls -la .next
           else
             echo "No .next directory found"
+            exit 1
           fi
-          echo "Creating out directory..."
+          
+          echo "=== Creating Static Export ==="
           npm run export
-          echo "Export completed. Checking out directory..."
+          
+          echo "=== Export Completed ==="
           if [ -d "out" ]; then
             echo "Export output found in out directory"
             ls -la out
