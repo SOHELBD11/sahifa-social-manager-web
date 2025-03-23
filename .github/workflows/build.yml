@@ -19,11 +19,16 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '16'
-          cache: 'npm'
 
       - name: Install dependencies
         run: |
-          npm install --legacy-peer-deps
+          echo "Installing dependencies..."
+          npm install --legacy-peer-deps --no-audit
+          echo "Generating package-lock.json..."
+          npm install --package-lock-only
+          echo "Installing dependencies with lock file..."
+          npm ci --legacy-peer-deps
+          echo "Listing installed packages..."
           npm list
 
       - name: Debug Info
