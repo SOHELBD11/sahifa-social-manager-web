@@ -111,36 +111,11 @@ jobs:
           exit 1
         fi
     
-    - name: Test FTP Connection
-      run: |
-        echo "=== Testing FTP Connection ==="
-        if [ -z "${{ secrets.FTP_SERVER }}" ] || [ -z "${{ secrets.FTP_USERNAME }}" ] || [ -z "${{ secrets.FTP_PASSWORD }}" ]; then
-          echo "Error: FTP credentials are not properly set in GitHub Secrets"
-          echo "Please check if FTP_SERVER, FTP_USERNAME, and FTP_PASSWORD are set"
-          exit 1
-        fi
-        echo "FTP credentials are present"
-    
-    - name: Deploy to cPanel
-      if: success() || failure()
-      uses: SamKirkland/FTP-Deploy-Action@4.0.0
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: ${{ github.ref == 'refs/heads/main' }}
       with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./out/
-        server-dir: public_html/
-        dangerous-clean-slate: true
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          **/.next/**
-          **/.env*
-          **/.env*/**
-          **/.env
-          **/.env.*
-          **/.env.local
-          **/.env.development.local
-          **/.env.test.local
-          **/.env.production.local 
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./out
+        publish_branch: gh-pages
+        commit_message: ${{ github.event.head_commit.message }} 
