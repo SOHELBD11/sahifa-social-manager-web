@@ -41,7 +41,22 @@ jobs:
     
     - name: Build
       run: |
-        npm run build:prod
+        echo "Starting build process..."
+        npm run build:prod || {
+          echo "Build failed. Checking for error logs..."
+          if [ -d ".next" ]; then
+            echo "Contents of .next directory:"
+            ls -la .next/
+          fi
+          exit 1
+        }
+        echo "Build completed. Checking output directory..."
+        if [ ! -d "out" ]; then
+          echo "Error: 'out' directory not created"
+          echo "Current directory contents:"
+          ls -la
+          exit 1
+        fi
       env:
         NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         NEXT_PUBLIC_FIREBASE_CONFIG: ${{ secrets.NEXT_PUBLIC_FIREBASE_CONFIG }}
@@ -50,7 +65,16 @@ jobs:
     
     - name: Check build output
       run: |
-        ls -la out/
+        echo "Checking build output directory..."
+        if [ -d "out" ]; then
+          echo "Contents of out directory:"
+          ls -la out/
+        else
+          echo "Error: out directory does not exist"
+          echo "Current directory contents:"
+          ls -la
+          exit 1
+        fi
     
     - name: Deploy to cPanel
       if: success() || failure()
