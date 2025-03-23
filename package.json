@@ -9,6 +9,7 @@
     "lint": "next lint",
     "build:dev": "cross-env NODE_ENV=development next build",
     "build:prod": "cross-env NODE_ENV=production next build",
+    "export": "next export",
     "type-check": "tsc --noEmit",
     "lint:fix": "next lint --fix"
   },
