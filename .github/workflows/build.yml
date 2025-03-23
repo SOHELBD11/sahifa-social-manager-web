@@ -56,9 +56,11 @@ jobs:
         ls -la
         
         echo "=== Running Next.js Build ==="
-        # Run build with verbose output
-        NODE_OPTIONS="--max_old_space_size=4096" npm run build 2>&1 || {
+        # Run build with verbose output and show it in real-time
+        NODE_OPTIONS="--max_old_space_size=4096" npm run build --verbose 2>&1 | tee build.log || {
           echo "Build failed. Checking for error logs..."
+          echo "=== Build Log Contents ==="
+          cat build.log
           if [ -d ".next" ]; then
             echo "Contents of .next directory:"
             ls -la .next/
@@ -80,6 +82,8 @@ jobs:
           if [ -f ".next/server/pages-manifest.json" ]; then
             cat .next/server/pages-manifest.json
           fi
+          echo "=== Build Log Contents ==="
+          cat build.log
           exit 1
         fi
       env:
