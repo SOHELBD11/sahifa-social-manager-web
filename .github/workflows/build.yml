@@ -3,119 +3,65 @@ name: Build and Deploy
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '16'
-    
-    - name: Debug Info
-      run: |
-        echo "=== Environment Information ==="
-        node --version
-        npm --version
-        pwd
-        echo "=== Directory Contents ==="
-        ls -la
-        echo "=== Package.json Contents ==="
-        cat package.json
-        echo "=== Next.js Config ==="
-        cat next.config.js
-    
-    - name: Install dependencies
-      run: |
-        echo "=== Installing Dependencies ==="
-        npm install --legacy-peer-deps --no-audit
-        echo "=== Installed Packages ==="
-        npm list
-    
-    - name: Check TypeScript
-      run: |
-        echo "=== Running TypeScript Check ==="
-        npm run type-check || true
-    
-    - name: Lint
-      run: |
-        echo "=== Running Lint ==="
-        npm run lint || true
-    
-    - name: Build
-      run: |
-        echo "=== Starting Build Process ==="
-        echo "Current directory:"
-        pwd
-        echo "Directory contents:"
-        ls -la
-        
-        echo "=== Running Next.js Build ==="
-        # Run build with verbose output and show it in real-time
-        NODE_OPTIONS="--max_old_space_size=4096" npm run build --verbose 2>&1 | tee build.log || {
-          echo "Build failed. Checking for error logs..."
-          echo "=== Build Log Contents ==="
-          cat build.log
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm install --legacy-peer-deps
+          npm list
+
+      - name: Debug Info
+        run: |
+          echo "Node version: $(node -v)"
+          echo "NPM version: $(npm -v)"
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+
+      - name: Build
+        run: |
+          echo "Starting build process..."
+          echo "Current directory contents:"
+          ls -la
+          echo "Running build command..."
+          NODE_ENV=production npm run build
+          echo "Build completed. Checking output directory..."
           if [ -d ".next" ]; then
-            echo "Contents of .next directory:"
-            ls -la .next/
+            echo "Build output found in .next directory"
+            ls -la .next
+          else
+            echo "No .next directory found"
           fi
-          echo "Current directory contents after failed build:"
-          ls -la
-          exit 1
-        }
-        
-        echo "=== Build Completed ==="
-        echo "Checking for output directory..."
-        if [ ! -d "out" ]; then
-          echo "Error: 'out' directory not created"
-          echo "Current directory contents:"
-          ls -la
-          echo "Checking .next directory:"
-          ls -la .next/
-          echo "Checking for any error logs:"
-          if [ -f ".next/server/pages-manifest.json" ]; then
-            cat .next/server/pages-manifest.json
+          echo "Creating out directory..."
+          npm run export
+          echo "Export completed. Checking out directory..."
+          if [ -d "out" ]; then
+            echo "Export output found in out directory"
+            ls -la out
+          else
+            echo "No out directory found"
+            exit 1
           fi
-          echo "=== Build Log Contents ==="
-          cat build.log
-          exit 1
-        fi
-      env:
-        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-        NEXT_PUBLIC_FIREBASE_CONFIG: ${{ secrets.NEXT_PUBLIC_FIREBASE_CONFIG }}
-        CI: false
-        DEBUG: "*"
-    
-    - name: Check build output
-      run: |
-        echo "=== Checking Build Output ==="
-        if [ -d "out" ]; then
-          echo "Contents of out directory:"
-          ls -la out/
-        else
-          echo "Error: out directory does not exist"
-          echo "Current directory contents:"
-          ls -la
-          echo "Checking .next directory:"
-          ls -la .next/
-          echo "=== Build Log Contents ==="
-          cat build.log
-          exit 1
-        fi
-    
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.ref == 'refs/heads/main' }}
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./out
-        publish_branch: gh-pages
-        commit_message: ${{ github.event.head_commit.message }} 
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          force_orphan: true 
