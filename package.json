@@ -20,6 +20,7 @@
     "@firebase/auth": "^1.6.0",
     "@firebase/firestore": "^4.4.0",
     "@firebase/storage": "^0.12.0",
+    "@headlessui/react": "^1.7.18",
     "@hookform/resolvers": "^3.3.4",
     "@tanstack/react-query": "^4.36.1",
     "@heroicons/react": "2.1.1",
