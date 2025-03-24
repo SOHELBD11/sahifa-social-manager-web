@@ -9,6 +9,8 @@ const nextConfig = {
     ignoreDuringBuilds: true, // Ignore ESLint errors during build
   },
   trailingSlash: true,
+  basePath: '/sahifa-social-manager-web',
+  assetPrefix: '/sahifa-social-manager-web/',
   images: {
     unoptimized: true,
   },
