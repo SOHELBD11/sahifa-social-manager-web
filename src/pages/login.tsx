@@ -1,22 +1,32 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '@/contexts/AuthContext';
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import Link from 'next/link';
 
 export default function Login() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const router = useRouter();
-  const { signIn } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
-      await signIn(email, password);
+      if (!auth) {
+        throw new Error('Firebase auth is not initialized');
+      }
+
+      await signInWithEmailAndPassword(auth, email, password);
       router.push('/dashboard');
-    } catch (error) {
-      setError('Failed to sign in. Please check your credentials.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to login');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -28,12 +38,7 @@ export default function Login() {
             Sign in to your account
           </h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{error}</div>
-            </div>
-          )}
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email-address" className="sr-only">
@@ -69,12 +74,17 @@ export default function Login() {
             </div>
           </div>
 
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
+
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              Sign in
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
 
