@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
+  images: {
+    unoptimized: true,
+  },
+  trailingSlash: true,
   reactStrictMode: true,
   swcMinify: false, // Disable SWC minification for faster builds
   typescript: {
@@ -8,12 +13,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // Ignore ESLint errors during build
   },
-  trailingSlash: true,
   basePath: '/sahifa-social-manager-web',
   assetPrefix: '/sahifa-social-manager-web/',
-  images: {
-    unoptimized: true,
-  },
   webpack: (config) => {
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find(
