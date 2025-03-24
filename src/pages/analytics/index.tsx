@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
 import AlertsList from '@/components/alerts/AlertsList';
 import NotificationPreferences from '@/components/notifications/NotificationPreferences';
@@ -18,6 +18,8 @@ import {
   ArcElement,
 } from 'chart.js';
 import { Line, Bar, Pie } from 'react-chartjs-2';
+import { useAuth } from '@/hooks/useAuth';
+import { auth } from '@/lib/firebase';
 
 // Register ChartJS components
 ChartJS.register(
@@ -42,11 +44,22 @@ interface PlatformData {
 const platforms: Platform[] = ['facebook', 'instagram', 'twitter', 'linkedin'];
 
 export default function Analytics() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  const [isClient, setIsClient] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('facebook');
   const [platformData, setPlatformData] = useState<{ [key in Platform]?: PlatformData }>({});
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     const fetchPlatformData = async () => {
@@ -70,10 +83,8 @@ export default function Analytics() {
         }
 
         setPlatformData(data);
-        setLoading(false);
       } catch (err) {
         setError('Failed to load analytics data');
-        setLoading(false);
       }
     };
 
@@ -184,14 +195,18 @@ export default function Analytics() {
     );
   };
 
-  if (loading) {
+  if (loading || !isClient) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       </Layout>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   if (error) {
@@ -206,8 +221,8 @@ export default function Analytics() {
 
   return (
     <Layout>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Analytics Dashboard</h1>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8">Analytics Dashboard</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-2">
