@@ -40,7 +40,7 @@ const timeRanges: TimeRange[] = [
   { label: 'Last 30 Days', days: 30 },
 ];
 
-export default function EmailAnalytics() {
+export default function EmailAnalyticsPage() {
   const { user } = useAuth();
   const [selectedRange, setSelectedRange] = useState<TimeRange>(timeRanges[0]);
   const [metrics, setMetrics] = useState<AggregatedMetrics | null>(null);

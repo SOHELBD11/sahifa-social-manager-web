@@ -2,9 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: false, // Disable SWC minification for faster builds
-  experimental: {
-    appDir: true,
-  },
   typescript: {
     ignoreBuildErrors: true, // Ignore TypeScript errors during build
   },
@@ -12,7 +9,6 @@ const nextConfig = {
     ignoreDuringBuilds: true, // Ignore ESLint errors during build
   },
   trailingSlash: true,
-  output: 'export',
   images: {
     unoptimized: true,
   },
